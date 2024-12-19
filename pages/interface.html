@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">User-Study User-Interface</title>
+
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 20px;
+            background-color: #e9ecef;
+        }
+        h1 {
+            color: #343a40;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .image-box {
+            margin: 10px;
+            width: 180px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            border: 0;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .image-box img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 5px;
+        }
+        .description {
+            text-align: center;
+            font-size: 14px;
+            color: #495057;
+            margin-top: 5px;
+        }
+        .image-row {
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 增强图像的面板样式 */
+        .panel {
+            margin: 10px 10px;
+            padding: 10px;
+            background: #f8f9fa; /* 面板背景颜色 */
+            border-radius: 5px;
+            color: #495057;
+            border: 1px solid #ced4da; /* 添加边框 */
+        }
+        .panel-title {
+            text-align: center;
+            color: #343a40; /* 标题颜色 */
+            margin-bottom: 10px; /* 标题与内容的间距 */
+            margin-top: 10px;
+        }
+
+        /* 星星评分滑条样式 */
+        .star-rating {
+            display: flex;
+            justify-content: center;
+        }
+        .star {
+            font-size: 30px;
+            cursor: pointer;
+            color: #e4e4e4; /* 默认星星颜色 */
+            transition: color 0.1s ease; /* 透明度 */
+        }
+        .star.highlight {
+            color: #ffcc00; /* 高亮颜色为金色 */
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s; /* 添加过渡效果 */
+        }
+        button:hover {
+            background-color: #0056b3; /* 鼠标悬停效果 */
+        }
+
+        /* before after image slider */
+        .center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .slider-container {
+            position: relative;
+            width: 180px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            border: 0;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+
+            .img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-size: 180px 100%;
+                display: flex;
+                border-radius: 5px;
+            }
+            .background-img {
+                background-image: none;
+                border: 0;
+                border-radius: 5px;
+            }
+            .foreground-img {
+                background-image: none;
+                width: calc(50% - 2px);
+                border: 0;
+                border-radius: 5px;
+            }
+
+            .slider {
+                position: absolute;
+                -webkit-appearance: none;
+                appearance: none;
+                width: 100%;
+                height: 100%;
+                background: #f2f2f200;
+                outline: none;
+                margin: 0;
+                transition: all 0.2s;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                &:hover {
+                    background: #f2f2f200;
+                }
+                &::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 2px;
+                    height: 120px;
+                    background: white;
+                    cursor: pointer;
+                }
+                &::-moz-range-thumb {
+                    width: 2px;
+                    height: 120px;
+                    background: white;
+                    cursor: pointer;
+                }
+            }
+
+            .slider-button {
+                pointer-events: none;
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background-color: white;
+                left: calc(50% - 12px);
+                top: calc(50% - 12px);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                &:after {
+                    content: "";
+                    padding: 2px;
+                    display: inline-block;
+                    border: solid #5d5d5d;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(-45deg);
+                }
+                &:before {
+                    content: "";
+                    padding: 2px;
+                    display: inline-block;
+                    border: solid #5d5d5d;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(135deg);
+                }
+            }
+        }
+
+        /* 正方体动画 */
+        .cube {
+            position: absolute;
+            bottom: 50px; /* 从底部开始 */
+            background-color: white; /* 设置为纯白色 */
+            border-radius: 2px;
+            animation: rise 25s infinite cubic-bezier(0.1, 0.4, 0.1, 1);
+            opacity: 0;
+            z-index: -1; /* 设置为底层 */
+        }
+        @keyframes rise {
+            0% { bottom: 50px; opacity: 0; transform: rotate(0deg); }
+            10% { opacity: 0.4; }
+            70% { opacity: 0.4; }
+            80% { opacity: 0; }
+            100% { bottom: 75%; opacity: 0; transform: rotate(720deg); }
+        }
+    </style>
+
+    <script src="/js/cube.js"></script>
+    <script>
+        function onImageClick(index) {
+            const allImages = document.querySelectorAll('.image-box');
+
+            // 添加和移除属性 mark
+            const marked_output = document.querySelectorAll('[mark="true"]');
+            const output_before = document.getElementById(`output-${index}`)
+            if (marked_output.length > 0 && `${index}` === marked_output[0].id.split('-')[1]) {
+                marked_output.forEach(output => {
+                    output.removeAttribute('mark');
+                });
+                for (let i = 1; i < allImages.length; i++) {
+                    // 获取 allImages[i] 第一个子节点的 src
+                    if (i === index) {
+                        continue;
+                    }
+
+                    const imageContainer = document.getElementById(`after-output-${i}`)
+                    let imageSrc = imageContainer.style.backgroundImage.split('(')[1].split(')')[0];
+                    // 去掉引号
+                    imageSrc = imageSrc.replace(/"/g, '');
+                    displayImage(`output-${i}`, imageSrc)
+                }
+            }
+            else if (marked_output.length === 0) {
+                marked_output.forEach(output => {
+                    output.removeAttribute('mark');
+                });
+                output_before.setAttribute('mark', `${true}`);
+
+                const imageSrc_before = output_before.src;
+                for (let i = 1; i < allImages.length; i++) {
+                    if (i === index) {
+                        continue;
+                    }
+
+                    const output = document.getElementById(`output-${i}`)
+                    const imageSrc = output.src;
+                    displayBeforeAfterImage(`output-${i}`, imageSrc_before, imageSrc)
+                }
+            }
+        }
+
+        function confirmImage(group, id) {
+            // 发请求给后端
+            const imageData = {
+                select_group: group,
+                select_id: id
+            };
+            let formData = new FormData();
+            for (let key in imageData) {
+                formData.append(`${key}`, imageData[key]);
+            }
+
+            const text = document.getElementById('text');
+            text.innerHTML = `正在提交... ${group} ${id}`;
+
+            // 获取当前网页的 url 和 user_id
+            const url = window.location.href;
+            const urlParams = new URLSearchParams(url.split('?')[1]);
+            const user_id = urlParams.get('user_id');
+
+            // 发送请求到后端
+            fetch(`/interface/select?user_id=${user_id}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json()) // 解析为 JSON
+            .then(data => {
+                if (data.next_id) {
+                    // 替换图像的
+                    text.innerHTML = `提交成功！ ${group} ${id}`;
+
+                    replaceImages(data.next_id);
+
+                    text.innerHTML = ``;
+                } else {
+                    alert('获取 next_id 失败，请重试！');
+                }
+            })
+            .catch(error => {
+                alert(`提交失败，请重试！错误信息：${error}`);
+            });
+        }
+
+        function replaceImages(nextId) {
+            const inputBox = document.getElementById('input-box');
+            const outputRow = document.getElementById('output-row');
+
+            // 从链接 http://10.133.2.38:8000/image_groups 中获取可用的组
+            fetch('/image_groups')
+            .then(response => response.json()) // 解析为 JSON
+            .then(data => {
+                // 排除 input 和 GT 组
+                const groups = data.groups;
+                let excludeGroups = [];
+                for (let i = 0; i < groups.length; i++) {
+                    if (groups[i].includes('input') || groups[i].includes('GT')) {
+                        continue;
+                    }
+                    excludeGroups.push(groups[i]);
+                }
+                const excludeNumber = excludeGroups.length;
+
+                // 生成数组 [1, 2, ..., number]
+                let outputIndices = Array.from({length: excludeNumber}, (_, i) => i+1);
+                outputIndices = outputIndices.sort(() => 0.5 - Math.random());
+
+                // 输入图像的 id
+                inputBox.setAttribute('imageid', nextId)
+                inputBox.innerHTML = `
+                    <img src="/image?group=input&id=${nextId}" alt="Input Image" id="input">
+                    <div class="description">低光图像</div>
+                    `;
+
+                // 遍历输出图像的 id
+                outputRow.innerHTML = '';
+                for (let i = 0; i < excludeNumber; i++) {
+                    const k = outputIndices[i];
+
+                    const group = excludeGroups[k - 1];
+                    const outputInnerContent_i = `
+                        <div class="image-box" imagegroup="${group}" imageid="${nextId}">
+                            <img src="/image?group=${group}&id=${nextId}" alt="增强图像${i + 1}" id="output-${i + 1}" onclick="onImageClick(${i + 1})">
+                            <div class="star-rating" id="star-rating-${i + 1}">
+                                <span class="star" onclick="setStarRating(${i + 1}, 1)">★</span>
+                                <span class="star" onclick="setStarRating(${i + 1}, 2)">★</span>
+                                <span class="star" onclick="setStarRating(${i + 1}, 3)">★</span>
+                                <span class="star" onclick="setStarRating(${i + 1}, 4)">★</span>
+                                <span class="star" onclick="setStarRating(${i + 1}, 5)">★</span>
+                            </div>
+                        </div>
+        `;
+                    outputRow.innerHTML += outputInnerContent_i;
+                }
+            })
+            .catch(() => {
+                alert('获取 groups 失败，请重试！');
+            });
+        }
+
+        // 调整 mainContainer 的宽度
+        function updateMainContainer() {
+            const mainContainer = document.getElementById('main-container');
+
+            fetch('/image_groups')
+            .then(response => response.json()) // 解析为 JSON
+            .then(data => {
+                // 排除 input 和 GT 组
+                const groups = data.groups;
+                let excludeGroups = [];
+                for (let i = 0; i < groups.length; i++) {
+                    if (groups[i].includes('input') || groups[i].includes('GT')) {
+                        continue;
+                    }
+                    excludeGroups.push(groups[i]);
+                }
+                const excludeNumber = excludeGroups.length;
+
+                // 获取 image-box 的宽度和 padding
+                const imageBoxWidth = parseInt(getComputedStyle(mainContainer.querySelector('.image-box')).width);
+                const imageBoxMarginLeft = parseInt(getComputedStyle(mainContainer.querySelector('.image-box')).marginLeft);
+                const imageBoxMarginRight = parseInt(getComputedStyle(mainContainer.querySelector('.image-box')).marginRight);
+                const containerWidth = (imageBoxWidth + imageBoxMarginLeft + imageBoxMarginRight) * excludeNumber;
+
+                // 设置 mainContainer 的宽度
+                mainContainer.style.maxWidth = `${containerWidth}px`;
+                mainContainer.style.width = `${containerWidth}px`;
+            })
+            .catch(() => {
+                alert('获取 groups 失败，请重试！');
+            });
+        }
+
+        // 修改网页标题
+        function changeTitle(title) {
+            // 获取当前网页的 url 和 user_id
+            const url = window.location.href;
+            const urlParams = new URLSearchParams(url.split('?')[1]);
+            const user_id = urlParams.get('user_id');
+
+            const interfaceTitle = document.getElementById('interface-title');
+            interfaceTitle.innerHTML = `${title} ${user_id}`;
+
+            const pageTitle = document.getElementById('page-title');
+            pageTitle.innerHTML = `${title} ${user_id}`;
+        }
+
+        // 星星评分滑条
+        function setStarRating(index, rating) {
+            const starContainer = document.getElementById(`star-rating-${index}`)
+            const stars = starContainer.querySelectorAll('.star');
+            stars.forEach((star, i) => {
+                if (i < rating) {
+                    star.classList.add('highlight'); // 高亮显示
+                } else {
+                    star.classList.remove('highlight'); // 移除高亮
+                }
+            });
+        }
+
+        // 显示 before after image slider
+        function displayBeforeAfterImage(outputId, beforeImageUrl, afterimageUrl) {
+            const output = document.getElementById(outputId);
+            const outputParent = output.parentNode;
+            // 保留除 id={outputId} 元素以外的所有子元素
+            const children = Array.from(outputParent.children).filter(child => child.id!== outputId);
+            // 编辑 output 元素
+            outputParent.innerHTML = `
+            <div class='center' id="${outputId}">
+                <div class='slider-container' id="slider-container-${outputId}">
+                    <div class='img background-img' style="background-image: url(${afterimageUrl})" id="after-${outputId}" urlcontent="${afterimageUrl}"></div>
+                    <div class='img foreground-img' style="background-image: url(${beforeImageUrl})" id="before-${outputId}" urlcontent="${beforeImageUrl}"></div>
+                    <input type="range" min="1" max="100" value="50" class="slider" name='slider' id="slider-${outputId}">
+                    <div class='slider-button' id="slider-button-${outputId}"></div>
+                </div>
+            </div>`;
+
+            // 将其他 children 元素添加到 outputParent 元素中
+            children.forEach(child => {
+                outputParent.appendChild(child);
+            });
+
+            /* before after image slider */
+            const slider = document.getElementById(`slider-${outputId}`);
+            const beforeImage = document.getElementById(`before-${outputId}`);
+            const sliderButton = document.getElementById(`slider-button-${outputId}`);
+
+
+            slider.addEventListener('input', (e) => {
+                const sliderPos = e.target.value;
+                // 更新前景图像的宽度
+                beforeImage.style.width = `calc(${sliderPos}% - 1px)`;
+                // 更新滑动按钮的位置
+                sliderButton.style.left = `calc(${sliderPos}% - 12px)`;
+            });
+        }
+
+        function displayImage(outputId, imageUrl) {
+            const output = document.getElementById(outputId);
+            const outputParent = output.parentNode;
+            // 保留除 id={outputId} 元素以外的所有子元素
+            const children = Array.from(outputParent.children).filter(child => child.id!== outputId);
+            // 编辑 output 元素
+            const i = outputId.split('-')[1];
+            outputParent.innerHTML = `
+            <img src="${imageUrl}" alt="增强图像${i}" id="${outputId}" onclick="onImageClick(${i})">`;
+
+            // 将其他 children 元素添加到 outputParent 元素中
+            children.forEach(child => {
+                outputParent.appendChild(child);
+            });
+        }
+
+        function uploadRating() {
+            // 获取当前网页的 url 和 user_id
+            const url = window.location.href;
+            const urlParams = new URLSearchParams(url.split('?')[1]);
+            const user_id = urlParams.get('user_id');
+
+            // 获取所有 id 和 rating 值
+            const allImages = document.querySelectorAll('.image-box');
+            let groups = [];
+            let ratings = [];
+            const id = allImages[0].getAttribute('imageid');
+            for (let i = 1; i < allImages.length; i++) {
+                const group = allImages[i].getAttribute('imagegroup');
+                // 数 highlight 星星的个数
+                const stars = allImages[i].querySelectorAll('.star.highlight');
+                const rating = stars.length;
+                groups.push(group);
+                ratings.push(rating);
+            }
+
+            // 获取所有评分的 group 和评分值
+            const data = {
+                'id': id,
+            }
+            for (let i = 0; i < groups.length; i++) {
+                data[groups[i]] = ratings[i];
+            }
+
+            let formData = new FormData();
+            for (let key in data) {
+                formData.append(`${key}`, data[key]);
+                console.log(key);
+            }
+            console.log(data);
+            console.log(formData);
+
+            // 发送请求到后端
+            fetch(`/interface/rating?user_id=${user_id}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json()) // 解析为 JSON
+            .then(data => {
+                if (data.next_id) {
+                    replaceImages(data.next_id);
+                } else {
+                    alert('获取 next_id 失败，请重试！');
+                }
+            })
+            .catch(error => {
+                alert(`提交失败，请重试！错误信息：${error}`);
+            });
+        }
+
+
+        window.onload = function() {
+            updateMainContainer();
+            confirmImage('', '');
+
+            changeTitle('User-Study User-Interface');
+
+            // 正方体动画
+            cubeInit();
+        }
+    </script>
+</head>
+<body>
+    <h1 id="interface-title">User-Study User-Interface</h1>
+
+    <div class="container" id="main-container">
+        <!-- 上方的一个低光图像框 -->
+        <div class="image-box" id="input-box">
+            <img src="/image?group=input&id=00690" alt="Input Image">
+            <div class="description">低光图像</div>
+        </div>
+
+        <!-- 下方的多个增强图像框 -->
+        <div class="panel">
+            <h2 class="panel-title">增强图像</h2>
+            <div class="image-row" id="output-row">
+                <div class="image-box">
+                    <img src="/image?group=FourLLIE&id=00690" alt="增强图像1" id="output-1" onclick="onImageClick(1)">
+                    <div class="star-rating" id="star-rating-1">
+                        <span class="star" onclick="setStarRating(1, 1)">★</span>
+                        <span class="star" onclick="setStarRating(1, 2)">★</span>
+                        <span class="star" onclick="setStarRating(1, 3)">★</span>
+                        <span class="star" onclick="setStarRating(1, 4)">★</span>
+                        <span class="star" onclick="setStarRating(1, 5)">★</span>
+                    </div>
+                </div>
+                <div class="image-box">
+                    <img src="/image?group=LightenDiffusion&id=00690" alt="增强图像2" id="output-2" onclick="onImageClick(2)">
+                    <div class="star-rating" id="star-rating-2">
+                        <span class="star" onclick="setStarRating(2, 1)">★</span>
+                        <span class="star" onclick="setStarRating(2, 2)">★</span>
+                        <span class="star" onclick="setStarRating(2, 3)">★</span>
+                        <span class="star" onclick="setStarRating(2, 4)">★</span>
+                        <span class="star" onclick="setStarRating(2, 5)">★</span>
+                    </div>
+                </div>
+                <div class="image-box">
+                    <img src="/image?group=LLFormer&id=00690" alt="增强图像3" id="output-3" onclick="onImageClick(3)">
+                    <div class="star-rating" id="star-rating-3">
+                        <span class="star" onclick="setStarRating(3, 1)">★</span>
+                        <span class="star" onclick="setStarRating(3, 2)">★</span>
+                        <span class="star" onclick="setStarRating(3, 3)">★</span>
+                        <span class="star" onclick="setStarRating(3, 4)">★</span>
+                        <span class="star" onclick="setStarRating(3, 5)">★</span>
+                    </div>
+                </div>
+                <div class="image-box">
+                    <img src="/image?group=SNRNet&id=00690" alt="增强图像4" id="output-4" onclick="onImageClick(4)">
+                    <div class="star-rating" id="star-rating-4">
+                        <span class="star" onclick="setStarRating(4, 1)">★</span>
+                        <span class="star" onclick="setStarRating(4, 2)">★</span>
+                        <span class="star" onclick="setStarRating(4, 3)">★</span>
+                        <span class="star" onclick="setStarRating(4, 4)">★</span>
+                        <span class="star" onclick="setStarRating(4, 5)">★</span>
+                    </div>
+                </div>
+                <div class="image-box">
+                    <img src="/image?group=Retinexformer&id=00690" alt="增强图像5" id="output-5" onclick="onImageClick(5)">
+                    <div class="star-rating" id="star-rating-5">
+                        <span class="star" onclick="setStarRating(5, 1)">★</span>
+                        <span class="star" onclick="setStarRating(5, 2)">★</span>
+                        <span class="star" onclick="setStarRating(5, 3)">★</span>
+                        <span class="star" onclick="setStarRating(5, 4)">★</span>
+                        <span class="star" onclick="setStarRating(5, 5)">★</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="uploadRating()">上传结果</button>
+        <div id="text"></div>
+    </div>
+</body>
+</html>

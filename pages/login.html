@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User-Study Login</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 20px;
+            background-color: #e9ecef; /* 使用更柔和的背景颜色 */
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+            height: 80vh; /* 使其高度占满视口 */
+            flex-direction: column; /* 垂直排列 */
+        }
+        h2 {
+            color: #343a40; /* 深色标题 */
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .login-container {
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 400px; /* 限制宽度 */
+            width: 100%; /* 确保容器宽度适应 */
+        }
+        .inputText {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            color: #495057;
+            border-radius: 5px;
+            width: calc(100% - 22px); /* 修正宽度，减去边框和内边距 */
+            margin-bottom: 15px; /* 添加底部间距 */
+            transition: border-color 0.3s; /* 添加过渡效果 */
+        }
+        .inputText:focus {
+            border-color: #80bdff; /* 当前输入框边框高亮 */
+        }
+        button {
+            font-weight: bold;
+            padding: 10px 15px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s; /* 添加过渡效果 */
+            width: 100%; /* 按钮宽度100% */
+        }
+        button:hover {
+            background-color: #0056b3; /* 鼠标悬停效果 */
+        }
+
+        /* 正方体动画 */
+        .cube {
+            position: absolute;
+            bottom: 50px; /* 从底部开始 */
+            background-color: white; /* 设置为纯白色 */
+            border-radius: 2px;
+            animation: rise 25s infinite cubic-bezier(0.1, 0.4, 0.1, 1);
+            opacity: 0;
+            z-index: -1; /* 设置为底层 */
+        }
+        @keyframes rise {
+            0% { bottom: 50px; opacity: 0; transform: rotate(0deg); }
+            10% { opacity: 0.4; }
+            70% { opacity: 0.4; }
+            80% { opacity: 0; }
+            100% { bottom: 75%; opacity: 0; transform: rotate(720deg); }
+        }
+
+        p.footer {
+            text-align: center;
+            margin-top: 30px;
+            color: white;
+        }
+    </style>
+
+    <script src="/js/cube.js"></script>
+    <script>
+        function checkUserExists(username) {
+            return fetch(`/interface/contains_user?user_id=${username}`)
+                .then(response => response.json()) // 假设返回 JSON 格式
+                .then(data => data.exists === true) // 检查返回的字段是否表示存在
+                .catch(() => false); // 如果请求失败，返回 false
+        }
+
+        async function handleInputChange(event) {
+            const username = event.target.value; // 获取当前输入的用户名
+            const button = document.querySelector('button');
+
+            if (username) {
+                const userExists = await checkUserExists(username); // 检查用户是否存在
+                if (userExists) {
+                    button.textContent = '登录';
+                    button.style.backgroundColor = '#007bff';
+                    button.onclick = () => handleLogin(username, true); // 绑定登录事件
+                } else {
+                    button.textContent = '注册';
+                    button.style.backgroundColor = '#28a745';
+                    button.onclick = () => handleLogin(username, false); // 绑定注册事件
+                }
+            } else {
+                button.textContent = '登录'; // 如果输入框为空，恢复为默认状态
+                button.style.backgroundColor = '#007bff';
+                button.onclick = null;
+            }
+        }
+
+        async function handleEnterLogin(event) {
+            event.preventDefault(); // 防止表单默认提交
+            const username = document.getElementById('username').value; // 获取用户名
+            const button = document.querySelector('button');
+
+            if (username) {
+                const userExists = await checkUserExists(username); // 检查用户是否存在
+                if (userExists) {
+                    button.textContent = '登录';
+                    button.onclick = () => handleLogin(username);
+                } else {
+                    button.textContent = '注册';
+                    button.onclick = () => handleLogin(username);
+                }
+            }
+        }
+
+        function handleLogin(username, login=true) {
+            if (login) {
+                if (confirm(`确认要登录账户 "${username}" 吗？`)) {
+                    window.location.href = `/interface?user_id=${username}`; // 跳转到登录页面
+                }
+            } else {
+                if (confirm(`确认要注册账户 "${username}" 吗？`)) {
+                    window.location.href = `/interface?user_id=${username}`; // 跳转到注册页面
+                }
+            }
+        }
+
+        window.onload = () => {
+            cubeInit();
+        }
+    </script>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>User-Study 用户登录</h2>
+        <form onsubmit="handleEnterLogin(event)">
+            <input type="text" id="username" class="inputText" placeholder="用户名" required oninput="handleInputChange(event)">
+            <button type="submit">登录</button>
+        </form>
+    </div>
+
+<!--    <p class="footer">© 2024 User-Study. All Rights Reserved</p>-->
+
+</body>
+</html>

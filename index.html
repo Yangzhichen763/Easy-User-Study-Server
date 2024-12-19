@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User-Study Server</title>
+
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 20px;
+            background-color: #e9ecef; /* 使用更柔和的背景颜色 */
+        }
+        h1 {
+            color: #343a40; /* 深色标题 */
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .back_ground {
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 1000px; /* 限制宽度 */
+        }
+        .inputText, select {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            color: #495057;
+            border-radius: 5px;
+            width: 150px;
+            margin-right: 10px;
+            transition: border-color 0.3s; /* 添加过渡效果 */
+        }
+        .inputText:focus, select:focus {
+            border-color: #80bdff; /* 当前输入框边框高亮 */
+        }
+        option {
+            color: #495057;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s; /* 添加过渡效果 */
+        }
+        button:hover {
+            background-color: #0056b3; /* 鼠标悬停效果 */
+        }
+        output {
+            margin: 20px auto;
+            background: #f8f9fa; /* 更加柔和的结果背景 */
+            border-radius: 5px;
+            padding: 15px;
+            color: #495057; /* 深色结果文字 */
+            border: 1px solid #ced4da; /* 添加边框 */
+        }
+
+        .link-section {
+            display: flex;
+            justify-content: space-between; /* 中间填充 */
+            align-items: center;
+            flex-direction: row;
+            margin-bottom: 10px; /* 各个链接区域之间的间隔 */
+        }
+        .vertical-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .divider {
+            height: 1px;
+            background: #dee2e6; /* 更加柔和的分割线颜色 */
+            margin: 10px 0; /* 分割线的上下间距 */
+        }
+
+        /* before after image slider */
+        .center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .slider-container {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            margin: 20px auto;
+            border: 2px solid white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            .img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-size: 600px 100%;
+                display: flex;
+            }
+            .background-img {
+                background-image: none;
+            }
+            .foreground-img {
+                background-image: none;
+                width: calc(50% - 2px);
+            }
+
+            .slider {
+                position: absolute;
+                -webkit-appearance: none;
+                appearance: none;
+                width: 100%;
+                height: 100%;
+                background: #f2f2f211;
+                outline: none;
+                margin: 0;
+                transition: all 0.2s;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                &:hover {
+                    background: #f2f2f200;
+                }
+                &::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    width: 4px;
+                    height: 400px;
+                    background: white;
+                    cursor: pointer;
+                }
+                &::-moz-range-thumb {
+                    width: 4px;
+                    height: 400px;
+                    background: white;
+                    cursor: pointer;
+                }
+            }
+
+            .slider-button {
+                pointer-events: none;
+                position: absolute;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                background-color: white;
+                left: calc(50% - 19px);
+                top: calc(50% - 19px);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                &:after {
+                    content: "";
+                    padding: 3px;
+                    display: inline-block;
+                    border: solid #5d5d5d;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(-45deg);
+                }
+                &:before {
+                    content: "";
+                    padding: 3px;
+                    display: inline-block;
+                    border: solid #5d5d5d;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(135deg);
+                }
+            }
+        }
+
+        /* 正方体动画 */
+        .cube {
+            position: absolute;
+            bottom: 50px; /* 从底部开始 */
+            background-color: white; /* 设置为纯白色 */
+            border-radius: 2px;
+            animation: rise 25s infinite cubic-bezier(0.1, 0.4, 0.1, 1);
+            opacity: 0;
+            z-index: -1; /* 设置为底层 */
+        }
+        @keyframes rise {
+            0% { bottom: 50px; opacity: 0; transform: rotate(0deg); }
+            10% { opacity: 0.4; }
+            70% { opacity: 0.4; }
+            80% { opacity: 0; }
+            100% { bottom: 75%; opacity: 0; transform: rotate(720deg); }
+        }
+    </style>
+
+    <script src="/js/cube.js"></script>
+    <script>
+        function populateGroups(html_id) {
+            const groupSelect = document.getElementById(html_id);
+
+            fetch('/image_groups')
+                .then(response => response.json())
+                .then(data => {
+                    data.groups.forEach(group => {
+                        const option = document.createElement('option');
+                        option.value = group;
+                        option.textContent = group;
+                        groupSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("获取数据时出错:", error); // 错误处理
+                });
+        }
+
+        function populateIds(group, html_id) {
+            const idSelect = document.getElementById(html_id);
+
+            // 获取当前选择的 id
+            const currentValue = idSelect.value;
+
+            // 清空之前的内容
+            idSelect.innerHTML = ''; // 清空之前的内容
+            if (!group) return;
+
+            fetch(`/image_ids?group=${group}`)
+                .then(response => response.json())
+                .then(data => {
+                    let anyExists = false;
+                    data.ids.forEach(id => {
+                        const option = document.createElement('option');
+                        option.value = id;
+                        option.textContent = id;
+                        idSelect.appendChild(option);
+
+                        if (id === currentValue) {
+                            anyExists = true;
+                        }
+                    });
+
+                    // 如果 data 中包含之前选择的 id，则还原之前选择的 id
+                    if (currentValue && anyExists) {
+                        idSelect.value = currentValue;
+                    }
+                })
+                .catch(error => {
+                    console.error("获取数据时出错:", error); // 错误处理
+                });
+        }
+
+        function updateLink1() {
+            // const groupValue = document.getElementById('groupInput-1').value;
+            // const idValue = document.getElementById('idInput-1').value;
+            const groupValue = document.getElementById('groupSelect-1').value;
+            const idValue = document.getElementById('idSelect-1').value;
+            let beforeImageUrl = `/image?group=input&id=${idValue || '00690'}`;
+            let afterImageUrl = `/image?group=${groupValue || 'FourLLIE'}&id=${idValue || '00690'}`;
+
+            document.getElementById('link-1').href = afterImageUrl
+            document.getElementById('group-name-1').textContent = groupValue || 'FourLLIE';
+            document.getElementById('image-id-1').textContent = idValue || '00690';
+
+            // 获取并显示图片
+            displayBeforeAfterImage('output-1', beforeImageUrl, afterImageUrl);
+        }
+
+        function updateLink2() {
+            const groupValue = document.getElementById('groupSelect-2').value;
+            const idValue = document.getElementById('idSelect-2').value;
+            let beforeImageUrl = `/image?group=input&id=${idValue || '00690'}`;
+            let afterImageUrl = `/images/${groupValue || 'FourLLIE'}/${idValue ? idValue + '.png' : '00690.png'}`;
+
+            document.getElementById('link-2').href = afterImageUrl
+            document.getElementById('group-name-2').textContent = groupValue || 'FourLLIE';
+            document.getElementById('image-id-2').textContent = (idValue ? idValue + '.png' : '00690.png');
+
+            // 获取并显示图片
+            displayBeforeAfterImage('output-2', beforeImageUrl, afterImageUrl);
+        }
+
+        function fetchImageIds() {
+            const output = document.getElementById('output-3');
+            const groupValue = document.getElementById('groupInput-3').value;
+            let _url = `/image_ids`;
+            if (groupValue) {
+                _url = `/image_ids?group=${groupValue}`;
+                document.getElementById('group-name-3').textContent = groupValue;
+            }
+            else {
+                _url = `/image_ids`;
+                document.getElementById('group-name-3').textContent = '';
+            }
+            document.getElementById('link-3').textContent = _url;
+            fetch(_url)
+               .then(response => response.text())
+               .then(text => {
+                    output.innerHTML = text;
+                })
+               .catch(error => {
+                    output.innerHTML = "请求失败：" + error;
+                });
+        }
+
+        function fetchImageGroups() {
+            const output = document.getElementById('output-4');
+            const link = document.getElementById('link-4');
+            fetch(link.href)
+               .then(response => response.text())
+               .then(text => {
+                    output.innerHTML = text;
+                })
+               .catch(error => {
+                    output.innerHTML = "请求失败：" + error;
+                });
+        }
+
+        function displayBeforeAfterImage(outputId, beforeImageUrl, afterimageUrl) {
+            const output = document.getElementById(outputId);
+            output.innerHTML = `
+            <div class='center'>
+                <div class='slider-container' id="slider-container-${outputId}">
+                    <div class='img background-img' style="background-image: url(${afterimageUrl})" id="before-${outputId}"></div>
+                    <div class='img foreground-img' style="background-image: url(${beforeImageUrl})" id="after-${outputId}"></div>
+                    <input type="range" min="1" max="100" value="50" class="slider" name='slider' id="slider-${outputId}">
+                    <div class='slider-button' id="slider-button-${outputId}"></div>
+                </div>
+            </div>`;
+
+            /* before after image slider */
+            const slider = document.getElementById(`slider-${outputId}`);
+            const afterImage = document.getElementById(`after-${outputId}`);
+            const sliderButton = document.getElementById(`slider-button-${outputId}`);
+
+
+            slider.addEventListener('input', (e) => {
+                const sliderPos = e.target.value;
+                // 更新前景图像的宽度
+                afterImage.style.width = `calc(${sliderPos}% - 2px)`;
+                // 更新滑动按钮的位置
+                sliderButton.style.left = `calc(${sliderPos}% - 18px)`;
+            });
+        }
+
+        window.onload = () => {
+            populateGroups('groupSelect-1');
+            document.getElementById('groupSelect-1').addEventListener('change', (event) => {
+                populateIds(event.target.value, 'idSelect-1');
+            });
+            populateGroups('groupSelect-2');
+            document.getElementById('groupSelect-2').addEventListener('change', (event) => {
+                populateIds(event.target.value, 'idSelect-2');
+            });
+            updateLink1();
+            updateLink2();
+            fetchImageIds();
+            fetchImageGroups();
+
+            // 正方体动画
+            cubeInit();
+        }
+    </script>
+</head>
+<body>
+    <h1>User-Study Server</h1>
+
+    <div class="back_ground">
+        <div class="vertical-section">
+            <div class="link-section">
+                <h4>链接：<a id="link-1" href="/image?group=FourLLIE&id=00690">/image?group=<span id="group-name-1">FourLLIE</span>&id=<span id="image-id-1">00690</span></a></h4>
+                <div>
+                    <select id="groupSelect-1" onchange="updateLink1()">
+                        <option value="">选择 group</option>
+                    </select>
+                    <select id="idSelect-1" onchange="updateLink1()">
+                        <option value="">选择 id</option>
+                    </select>
+                    <button onclick="updateLink1()">更新链接</button>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div id="output-1"></div>
+        </div>
+    </div>
+
+    <div class="back_ground">
+        <div class="vertical-section">
+            <div class="link-section">
+                <h4>链接：<a id="link-2" href="/images/FourLLIE/00690.png">/images/<span id="group-name-2">FourLLIE</span>/<span id="image-id-2">00690.png</span></a></h4>
+                <div>
+                    <select id="groupSelect-2" onchange="updateLink2()">
+                        <option value="">选择 group</option>
+                    </select>
+                    <select id="idSelect-2" onchange="updateLink2()">
+                        <option value="">选择 id</option>
+                    </select>
+                    <button onclick="updateLink2()">更新链接</button>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div id="output-2"></div>
+        </div>
+    </div>
+
+    <div class="back_ground">
+        <div class="vertical-section">
+            <div class="link-section">
+                <h4>链接：<a id="link-3" href="/image_ids">/image_ids<span id="group-name-3"></span></a></h4>
+                <div>
+                    <input class="inputText" type="text" id="groupInput-3" placeholder="输入 group" />
+                    <button onclick="fetchImageIds()">更新结果</button>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <output id="output-3"></output>
+        </div>
+    </div>
+
+    <div class="back_ground">
+        <div class="vertical-section">
+            <div class="link-section">
+                <h4>链接：<a id="link-4" href="/image_groups">/image_groups</a></h4>
+                <div>
+                    <button onclick="fetchImageGroups()">更新结果</button>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <output id="output-4"></output>
+        </div>
+    </div>
+</body>
+</html>

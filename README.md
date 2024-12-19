@@ -73,3 +73,17 @@ python server.py
 - 自定义服务器内容：在 `server.py` 的 `UserStudyHandler` 中进行修改
   - 对于需要通过少量参数获取的数据，在 `do_GET` 函数中添加条件分支
   - 对于需要通过大量数据获取的数据，在 `do_POST` 函数中添加条件分支
+
+## 界面展示
+
+### 登录界面
+
+![login\.png](figures/login.png)
+
+### User-Study 界面
+
+![interface\.png](figures/interface.png)
+
+### 服务器内容
+
+![server\.png](figures/server.png)

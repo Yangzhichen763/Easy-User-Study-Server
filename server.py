@@ -242,7 +242,7 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
             # 发送响应体
-            with open("users/interface.html", "rb") as f:
+            with open("pages/interface.html", "rb") as f:
                 self.wfile.write(f.read())
         # 用户 User-Study 测验界面
         elif path.startswith("/interface/"):
@@ -252,7 +252,7 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
             # 发送响应体
-            with open("users/interface.html", "rb") as f:
+            with open("pages/interface.html", "rb") as f:
                 self.wfile.write(f.read())
         # 用户登录界面
         elif path.startswith("/"):
@@ -262,7 +262,7 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
             # 发送响应体
-            with open("users/login.html", "rb") as f:
+            with open("pages/login.html", "rb") as f:
                 self.wfile.write(f.read())
         else:
             # 处理其他请求

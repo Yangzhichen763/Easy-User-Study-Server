@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User-Study Server</title>
 
+    <link rel="stylesheet" href="/css/cube.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -173,24 +174,6 @@
                     transform: rotate(135deg);
                 }
             }
-        }
-
-        /* 正方体动画 */
-        .cube {
-            position: absolute;
-            bottom: 50px; /* 从底部开始 */
-            background-color: white; /* 设置为纯白色 */
-            border-radius: 2px;
-            animation: rise 25s infinite cubic-bezier(0.1, 0.4, 0.1, 1);
-            opacity: 0;
-            z-index: -1; /* 设置为底层 */
-        }
-        @keyframes rise {
-            0% { bottom: 50px; opacity: 0; transform: rotate(0deg); }
-            10% { opacity: 0.4; }
-            70% { opacity: 0.4; }
-            80% { opacity: 0; }
-            100% { bottom: 75%; opacity: 0; transform: rotate(720deg); }
         }
     </style>
 

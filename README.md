@@ -48,8 +48,8 @@
 
 #### 克隆项目
 ```shell
-git clone https://github.com/yangzhichen763/easy-user-study-server.git
-cd easy-user-study-server
+git clone https://github.com/Yangzhichen763/Easy-User-Study-Server.git
+cd Easy-User-Study-Server
 ```
 #### 配置环境
 ```shell

@@ -206,6 +206,15 @@ class UserStudyHandler(BaseHTTPRequestHandler):
                 self.send_response(404)
                 self.end_headers()
                 return
+        elif path == "/style.css":
+            # 发送响应头
+            self.send_response(200)
+            self.send_header("Content-type", "text/css")
+            self.end_headers()
+
+            # 发送响应体
+            with open("style.css", "rb") as f:
+                self.wfile.write(f.read())
         # 服务器数据
         elif path.startswith("/server"):
             # 处理默认请求

@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User-Study Login</title>
-    
+
     <link rel="stylesheet" href="/css/cube.css">
+    <link rel="stylesheet" href="/style.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -22,40 +23,16 @@
             text-align: center;
             margin-bottom: 20px;
         }
-        .login-container {
-            margin: 20px auto;
-            padding: 20px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        .container {
             max-width: 400px; /* 限制宽度 */
             width: 100%; /* 确保容器宽度适应 */
         }
         .inputText {
-            padding: 10px;
-            border: 1px solid #ced4da;
-            color: #495057;
-            border-radius: 5px;
             width: calc(100% - 22px); /* 修正宽度，减去边框和内边距 */
             margin-bottom: 15px; /* 添加底部间距 */
-            transition: border-color 0.3s; /* 添加过渡效果 */
-        }
-        .inputText:focus {
-            border-color: #80bdff; /* 当前输入框边框高亮 */
         }
         button {
-            font-weight: bold;
-            padding: 10px 15px;
-            background-color: #007bff;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s; /* 添加过渡效果 */
-            width: 100%; /* 按钮宽度100% */
-        }
-        button:hover {
-            background-color: #0056b3; /* 鼠标悬停效果 */
+            width: 100%;
         }
 
         p.footer {
@@ -132,7 +109,7 @@
 </head>
 <body>
 
-    <div class="login-container">
+    <div class="container">
         <h2>User-Study 用户登录</h2>
         <form onsubmit="handleEnterLogin(event)">
             <input type="text" id="username" class="inputText" placeholder="用户名" required oninput="handleInputChange(event)">

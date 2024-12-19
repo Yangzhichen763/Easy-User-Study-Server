@@ -1,0 +1,51 @@
+
+/* 包围容器 */
+.container {
+    margin: 20px auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 分割线 */
+.divider {
+    height: 1px;
+    background: #dee2e6; /* 更加柔和的分割线颜色 */
+    margin: 10px 0; /* 分割线的上下间距 */
+}
+
+/* 按钮 */
+button {
+    font-weight: bold;
+    padding: 10px 15px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s; /* 添加过渡效果 */
+}
+button:hover {
+    background-color: #0056b3; /* 鼠标悬停效果 */
+}
+
+/* 输入框 */
+.inputText, select {
+    padding: 10px;
+    border: 1px solid #ced4da;
+    color: #495057;
+    border-radius: 5px;
+    width: 150px;
+    margin-right: 10px;
+    transition: border-color 0.3s; /* 添加过渡效果 */
+}
+.inputText:focus, select:focus {
+    border-color: #80bdff; /* 当前输入框边框高亮 */
+}

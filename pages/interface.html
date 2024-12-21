@@ -239,40 +239,12 @@
                 formData.append(`${key}`, imageData[key]);
             }
 
-            const text = document.getElementById('text');
-            text.innerHTML = `正在提交... ${group} ${id}`;
-
             // 获取当前网页的 url 和 user_id
             const url = window.location.href;
             const urlParams = new URLSearchParams(url.split('?')[1]);
             const user_id = urlParams.get('user_id');
 
-            // 发送请求到后端
-            fetch(`/interface/rating?user_id=${user_id}`, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json()) // 解析为 JSON
-            .then(data => {
-                if (data.next_id) {
-                    if (data.next_id === "None") {
-                        alert('所有图像已提交！');
-                    }
-                    else {
-                        // 替换图像的
-                        text.innerHTML = `提交成功！ ${group} ${id}`;
-
-                        replaceImages(data.next_id);
-
-                        text.innerHTML = ``;
-                    }
-                } else {
-                    alert('获取 next_id 失败，请重试！');
-                }
-            })
-            .catch(error => {
-                alert(`提交失败，请重试！错误信息：${error}`);
-            });
+            requestAndUpdate(formData, user_id);
         }
 
         function replaceImages(nextId) {
@@ -475,38 +447,41 @@
             let formData = new FormData();
             for (let key in data) {
                 formData.append(`${key}`, data[key]);
-                console.log(key);
             }
-            console.log(data);
-            console.log(formData);
 
+            requestAndUpdate(formData, user_id);
+        }
+
+        // 发送请求并更新页面
+        function requestAndUpdate(formData, user_id) {
             // 发送请求到后端
             fetch(`/interface/rating?user_id=${user_id}`, {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json()) // 解析为 JSON
-            .then(data => {
-                if (data.next_id) {
-                    if (data.next_id === "None") {
-                        alert('所有图像已提交！');
+                .then(response => response.json()) // 解析为 JSON
+                .then(data => {
+                    if (data.next_id) {
+                        if (data.next_id === "201-None") {
+                            alert('所有图像已提交！');
+                        }
+                        else if (data.next_id === "401-DataNotFound") {
+                            alert('图像数据库丢失！');
+                        } else {
+                            replaceImages(data.next_id);
+                        }
+                    } else {
+                        alert('获取 next_id 失败，请重试！');
                     }
-                    else {
-                        replaceImages(data.next_id);
-                    }
-                } else {
-                    alert('获取 next_id 失败，请重试！');
-                }
-            })
-            .catch(error => {
-                alert(`提交失败，请重试！错误信息：${error}`);
-            });
+                })
+                .catch(error => {
+                    alert(`提交失败，请重试！错误信息：${error}`);
+                });
         }
-
 
         window.onload = function() {
             updateMainContainer();
-            confirmImage("None", "None");
+            confirmImage("201-None", "None");
 
             changeTitle('User-Study User-Interface');
 
@@ -583,7 +558,7 @@
         </div>
 
         <button onclick="uploadRating()">上传结果</button>
-        <div id="text"></div>
+<!--        <div id="text"></div>-->
     </div>
 </body>
 </html>

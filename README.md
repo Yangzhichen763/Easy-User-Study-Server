@@ -16,39 +16,22 @@
 - IP 地址为电脑连上的局域网的 IP 地址
 - 端口号为 8000
 ```txt
-└── server.py         // 服务器主文件
+├── server.py         // 服务器主文件
 ```
 
-### 前端模板
-这个是用来做参考的
-```txt
-├── index.html        // 主HTML文件
-├── style.css         // 主样式文件
-├── script.js         // 主JavaScript文件
-├── /assets           // 静态资源
-│   ├── /images       // 存放图片
-│   ├── /fonts        // 存放字体
-│   └── /videos       // 存放视频
-├── /css              // 存放样式文件
-│   ├── reset.css     // 重置样式文件
-│   ├── layout.css    // 布局样式文件
-│   └── components.css // 组件样式文件
-├── /js               // 存放JavaScript文件
-│   ├── app.js        // 应用逻辑主文件
-│   ├── utils.js      // 工具函数
-│   └── api.js        // API请求相关代码
-├── /components       // 存放可重用的组件
-│   ├── Header.js     // 头部组件
-│   ├── Footer.js     // 底部组件
-│   └── Modal.js      // 模态框组件
-├── /pages            // 不同页面的结构（如果有多个页面）
-│   ├── Home.html     // 首页
-│   ├── About.html    // 关于页
-│   └── Contact.html   // 联系页
-└── /tests            // 存放测试文件
-    ├── app.test.js   // 应用逻辑测试
-    └── utils.test.js  // 工具函数测试
+### 数据部分
 
+```txt
+├── images
+    ├── input
+    │   ├── image1.jpg
+    │   ├── image2.jpg
+    │   ├──...
+    ├── method_name
+    │   ├── image1.jpg
+    │   ├── image2.jpg
+    │   ├──...
+    ├──...
 ```
 
 ## 使用指南
@@ -96,3 +79,6 @@ python server.py
 ### 服务器内容
 
 ![server\.png](figures/server.png)
+
+## 未来展望
+- 使用 Flask 作为服务器 Web 开发框架

@@ -306,17 +306,17 @@ class UserStudyHandler(BaseHTTPRequestHandler):
                 print(f"Selected image ID: {select_id}, Group: {select_group}", end=" ")
 
                 # 将数据写入文件
-                if select_id != "" and select_group != "":
+                if select_id != "None" and select_group != "None":
                     any_exist = os.path.exists(dat_path)
                     if any_exist:
                         # 将 select_gid 以 append 方式写入文件
                         with open(dat_path, "a") as f:
-                            if data.get("select_id") and data["select_id"] != "":
+                            if data.get("select_id") and data["select_id"] != "None":
                                 f.write(f"{select_id}, {select_group}\n")
                     else:
                         # 创建文件并写入 select_gid
                         with open(dat_path, "w") as f:
-                            if data.get("select_id") and data["select_id"] != "":
+                            if data.get("select_id") and data["select_id"] != "None":
                                 f.write(f"{select_id}, {select_group}\n")
             except Exception as e:
                 print(f"\nError: {e}")
@@ -339,7 +339,7 @@ class UserStudyHandler(BaseHTTPRequestHandler):
 
             # 随机选取一个 ID
             if len(can_select_ids) == 0:
-                select_id = ""
+                select_id = "None"
             else:
                 select_id = random.choice(can_select_ids)
             # 发送响应体
@@ -366,12 +366,12 @@ class UserStudyHandler(BaseHTTPRequestHandler):
                 if any_exist:
                     # 将 select_gid 以 append 方式写入文件
                     with open(dat_path, "a") as f:
-                        if data.get("id") and data["id"] != "":
+                        if data.get("id") and data["id"] != "None":
                             f.write(f"{data}\n")
                 else:
                     # 创建文件并写入 select_gid
                     with open(dat_path, "w") as f:
-                        if data.get("id") and data["id"] != "":
+                        if data.get("id") and data["id"] != "None":
                             f.write(f"{data}\n")
 
             except Exception as e:
@@ -400,7 +400,7 @@ class UserStudyHandler(BaseHTTPRequestHandler):
 
             # 随机选取一个 ID
             if len(can_select_ids) == 0:
-                select_id = ""
+                select_id = "None"
             else:
                 select_id = random.choice(can_select_ids)
 

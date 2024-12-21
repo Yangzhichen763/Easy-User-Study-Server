@@ -255,7 +255,7 @@
             .then(response => response.json()) // 解析为 JSON
             .then(data => {
                 if (data.next_id) {
-                    if (data.next_id === 'None') {
+                    if (data.next_id === "None") {
                         alert('所有图像已提交！');
                     }
                     else {
@@ -488,7 +488,7 @@
             .then(response => response.json()) // 解析为 JSON
             .then(data => {
                 if (data.next_id) {
-                    if (data.next_id === 'None') {
+                    if (data.next_id === "None") {
                         alert('所有图像已提交！');
                     }
                     else {
@@ -506,7 +506,7 @@
 
         window.onload = function() {
             updateMainContainer();
-            confirmImage('', '');
+            confirmImage("None", "None");
 
             changeTitle('User-Study User-Interface');
 

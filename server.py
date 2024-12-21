@@ -393,7 +393,6 @@ class UserStudyHandler(BaseHTTPRequestHandler):
                         if id_re:
                             _id = id_re[0]
                             select_ids.append(_id)
-            print(select_ids)
 
             # 计算可以选取的 ID，即 image_ids 中不包含 select_ids 的 ID
             image_ids = self.get_image_ids()

@@ -248,19 +248,24 @@
             const user_id = urlParams.get('user_id');
 
             // 发送请求到后端
-            fetch(`/interface/select?user_id=${user_id}`, {
+            fetch(`/interface/rating?user_id=${user_id}`, {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json()) // 解析为 JSON
             .then(data => {
                 if (data.next_id) {
-                    // 替换图像的
-                    text.innerHTML = `提交成功！ ${group} ${id}`;
+                    if (data.next_id === 'None') {
+                        alert('所有图像已提交！');
+                    }
+                    else {
+                        // 替换图像的
+                        text.innerHTML = `提交成功！ ${group} ${id}`;
 
-                    replaceImages(data.next_id);
+                        replaceImages(data.next_id);
 
-                    text.innerHTML = ``;
+                        text.innerHTML = ``;
+                    }
                 } else {
                     alert('获取 next_id 失败，请重试！');
                 }
@@ -483,7 +488,12 @@
             .then(response => response.json()) // 解析为 JSON
             .then(data => {
                 if (data.next_id) {
-                    replaceImages(data.next_id);
+                    if (data.next_id === 'None') {
+                        alert('所有图像已提交！');
+                    }
+                    else {
+                        replaceImages(data.next_id);
+                    }
                 } else {
                     alert('获取 next_id 失败，请重试！');
                 }

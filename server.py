@@ -35,7 +35,7 @@ class UserStudyHandler(BaseHTTPRequestHandler):
         for group in os.listdir("images"):
             tmp_image_ids = []
             for image_id in os.listdir(os.path.join("images", group)):
-                tmp_image_ids.append(os.path.splitext(image_id)[0])
+                tmp_image_ids.append(image_id)
             # 取交集
             if len(image_ids) == 0:
                 image_ids = tmp_image_ids
@@ -46,7 +46,7 @@ class UserStudyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         # 获取请求路径
         path = self.path
-        # e.g. /image?group=FourLLIE&id=00690
+        # e.g. /image?group=FourLLIE&id=00690.png
         if path.startswith("/image?"):
             # 获取所有 params
             params = dict(param.split("=") for param in path.split("?")[1].split("&"))
@@ -59,7 +59,9 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
             # 发送响应体
-            image_path = os.path.join("images", group, image_id + ".png")
+            if '.' not in image_id:
+                image_id += '.png'
+            image_path = os.path.join("images", group, image_id)
             with open(image_path, "rb") as f:
                 self.wfile.write(f.read())
         # e.g. /images/FourLLIE/00690.png
@@ -288,6 +290,7 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             params = dict(param.split("=") for param in path.split("?")[1].split("&"))
             user_id = params["user_id"]
 
+            dat_path = f"users/datas/{user_id}.dat"
             print(f"User {user_id} selected an image.", end=" ")
             try:
                 # 处理传送的数据，为 form-data 的格式
@@ -304,11 +307,17 @@ class UserStudyHandler(BaseHTTPRequestHandler):
 
                 # 将数据写入文件
                 if select_id != "" and select_group != "":
-                    any_exist = os.path.exists(f"users/datas/{user_id}.dat")
+                    any_exist = os.path.exists(dat_path)
                     if any_exist:
                         # 将 select_gid 以 append 方式写入文件
-                        with open(f"users/datas/{user_id}.dat", "a") as f:
-                            f.write(f"{select_id}, {select_group}\n")
+                        with open(dat_path, "a") as f:
+                            if data.get("select_id") and data["select_id"] != "":
+                                f.write(f"{select_id}, {select_group}\n")
+                    else:
+                        # 创建文件并写入 select_gid
+                        with open(dat_path, "w") as f:
+                            if data.get("select_id") and data["select_id"] != "":
+                                f.write(f"{select_id}, {select_group}\n")
             except Exception as e:
                 print(f"\nError: {e}")
             print("")
@@ -319,16 +328,20 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
             # 读入文件内容
-            with open(f"users/datas/{user_id}.dat", "r") as f:
-                select_ids = f.read().strip().split(",")[0]
+            select_ids = []
+            if os.path.exists(dat_path):
+                with open(dat_path, "r") as f:
+                    select_ids = f.read().strip().split(",")[0]
 
             # 计算可以选取的 ID，即 image_ids 中不包含 select_ids 的 ID
             image_ids = self.get_image_ids()
-            can_select_ids = list(set(image_ids) - set(select_ids.split(",")))
+            can_select_ids = list(set(image_ids) - set(select_ids))
 
             # 随机选取一个 ID
-            select_id = random.choice(can_select_ids)
-
+            if len(can_select_ids) == 0:
+                select_id = ""
+            else:
+                select_id = random.choice(can_select_ids)
             # 发送响应体
             json_data = json.dumps({"next_id": select_id})
             self.wfile.write(json_data.encode())
@@ -337,6 +350,7 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             params = dict(param.split("=") for param in path.split("?")[1].split("&"))
             user_id = params["user_id"]
 
+            dat_path = f"users/datas/{user_id}.dat"
             print(f"User {user_id} selected an image.", end=" ")
             try:
                 # 处理传送的数据，为 form-data 的格式
@@ -348,11 +362,18 @@ class UserStudyHandler(BaseHTTPRequestHandler):
                 print(f"Data: {data}")
 
                 # 将数据写入文件
-                any_exist = os.path.exists(f"users/datas/{user_id}.dat")
+                any_exist = os.path.exists(dat_path)
                 if any_exist:
                     # 将 select_gid 以 append 方式写入文件
-                    with open(f"users/datas/{user_id}.dat", "a") as f:
-                        f.write(f"{data}\n")
+                    with open(dat_path, "a") as f:
+                        if data.get("id") and data["id"] != "":
+                            f.write(f"{data}\n")
+                else:
+                    # 创建文件并写入 select_gid
+                    with open(dat_path, "w") as f:
+                        if data.get("id") and data["id"] != "":
+                            f.write(f"{data}\n")
+
             except Exception as e:
                 print(f"\nError: {e}")
             print("")
@@ -364,18 +385,25 @@ class UserStudyHandler(BaseHTTPRequestHandler):
 
             # 读入文件内容（其中的 id）
             select_ids = []
-            with open(f"users/datas/{user_id}.dat", "r") as f:
-                read_datas = f.read().strip().split("\n")
-                for read_data in read_datas:
-                    _id = re.findall(r"'id': '(.*?)'", read_data)[0]
-                    select_ids.append(_id)
+            if os.path.exists(dat_path):
+                with open(dat_path, "r") as f:
+                    read_datas = f.read().strip().split("\n")
+                    for read_data in read_datas:
+                        id_re = re.findall(r"'id': '(.*?)'", read_data)
+                        if id_re:
+                            _id = id_re[0]
+                            select_ids.append(_id)
+            print(select_ids)
 
             # 计算可以选取的 ID，即 image_ids 中不包含 select_ids 的 ID
             image_ids = self.get_image_ids()
             can_select_ids = list(set(image_ids) - set(select_ids))
 
             # 随机选取一个 ID
-            select_id = random.choice(can_select_ids)
+            if len(can_select_ids) == 0:
+                select_id = ""
+            else:
+                select_id = random.choice(can_select_ids)
 
             # 发送响应体
             json_data = json.dumps({"next_id": select_id})

@@ -454,6 +454,9 @@
 
         // 发送请求并更新页面
         function requestAndUpdate(formData, user_id) {
+            text = document.getElementById('text');
+            text.innerHTML = '请求图像中...';
+
             // 发送请求到后端
             fetch(`/interface/rating?user_id=${user_id}`, {
                 method: 'POST',
@@ -461,6 +464,7 @@
             })
                 .then(response => response.json()) // 解析为 JSON
                 .then(data => {
+                    text.innerHTML = '';
                     if (data.next_id) {
                         if (data.next_id === "201-None") {
                             alert('所有图像已提交！');
@@ -475,6 +479,7 @@
                     }
                 })
                 .catch(error => {
+                    text.innerHTML = '';
                     alert(`提交失败，请重试！错误信息：${error}`);
                 });
         }
@@ -558,7 +563,7 @@
         </div>
 
         <button onclick="uploadRating()">上传结果</button>
-<!--        <div id="text"></div>-->
+        <div id="text"></div>
     </div>
 </body>
 </html>

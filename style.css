@@ -49,3 +49,16 @@ button:hover {
 .inputText:focus, select:focus {
     border-color: #80bdff; /* 当前输入框边框高亮 */
 }
+
+/* 提示信息文本 */
+.tip {
+    padding-bottom: 20px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    color: #dc3545;
+}
+
+.tip-icon {
+    margin-right: 8px;
+}

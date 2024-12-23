@@ -273,6 +273,27 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             # 发送响应体
             with open("pages/interface.html", "rb") as f:
                 self.wfile.write(f.read())
+        # 其他 html 界面
+        elif path.startswith("/html"):
+            path = path[6:]
+            if ".." in path:
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            if os.path.isfile(path) and path.endswith(".html"):
+                # 发送响应头
+                self.send_response(200)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+
+                # 发送响应体
+                with open(path, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_response(404)
+                self.end_headers()
+                return
         # 用户登录界面
         elif path.startswith("/"):
             # 处理默认请求

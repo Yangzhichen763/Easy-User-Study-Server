@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="/css/cube.css">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/css/imageViewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -27,7 +28,6 @@
         .image-box {
             margin: 10px;
             width: 180px;
-            height: 150px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -38,7 +38,6 @@
         }
         .image-box img {
             max-width: 100%;
-            max-height: 100%;
             border-radius: 5px;
         }
         .description {
@@ -109,13 +108,11 @@
             .background-img {
                 background-image: none;
                 border: 0;
-                border-radius: 5px;
             }
             .foreground-img {
                 background-image: none;
                 width: calc(50% - 2px);
                 border: 0;
-                border-radius: 5px;
             }
 
             .slider {
@@ -134,20 +131,6 @@
 
                 &:hover {
                     background: #f2f2f200;
-                }
-                &::-webkit-slider-thumb {
-                    -webkit-appearance: none;
-                    appearance: none;
-                    width: 2px;
-                    height: 120px;
-                    background: white;
-                    cursor: pointer;
-                }
-                &::-moz-range-thumb {
-                    width: 2px;
-                    height: 120px;
-                    background: white;
-                    cursor: pointer;
                 }
             }
 
@@ -185,7 +168,9 @@
     </style>
 
     <script src="/js/cube.js"></script>
+    <script src="/js/imageViewer.js"></script>
     <script>
+        // 图像点击的时候，将图像变为对比图像
         function onImageClick(index) {
             const allImages = document.querySelectorAll('.image-box');
 
@@ -208,25 +193,59 @@
                     imageSrc = imageSrc.replace(/"/g, '');
                     displayImage(`output-${i}`, imageSrc)
                 }
+                addImageTool(allImages.length - 1, index);
             }
             else if (marked_output.length === 0) {
-                marked_output.forEach(output => {
-                    output.removeAttribute('mark');
+                marked_output.forEach(image => {
+                    image.removeAttribute('mark');
                 });
                 output_before.setAttribute('mark', `${true}`);
 
                 const imageSrc_before = output_before.src;
+
+                // 将图像替换为 before after image slider
                 for (let i = 1; i < allImages.length; i++) {
                     if (i === index) {
                         continue;
                     }
 
-                    const output = document.getElementById(`output-${i}`)
-                    const imageSrc = output.src;
-                    displayBeforeAfterImage(`output-${i}`, imageSrc_before, imageSrc)
+                    const abImage = document.getElementById(`output-${i}`);
+                    const abImageSrc = abImage.src;
+                    displayBeforeAfterImage(`output-${i}`, imageSrc_before, abImageSrc);
+                }
+
+                adjustImageBoxSize();
+            }
+
+            // 调整图像的 box 大小
+            function adjustImageBoxSize() {
+                const allImages = document.querySelectorAll('.image-box');
+
+                // 获取图像大小
+                const image = document.getElementById(`input`);
+                const imageWidth = image.width;
+                const imageHeight = image.height;
+                console.log(imageWidth, imageHeight)
+                const imageBoxWidth = 180;
+                const imageBoxHeight = parseInt(imageHeight) / parseInt(imageWidth) * imageBoxWidth + 40;
+
+                // 调整图像的 box 大小
+                for (let i = 1; i < allImages.length; i++) {
+                    const abImage = document.getElementById(`output-${i}`);
+                    const abImageBox = abImage.parentNode;
+                    abImageBox.style.width = `${imageBoxWidth}px`;
+                    abImageBox.style.height = `${imageBoxHeight}px`;
+
+                    // 将图片的大小和对比图片的大小相对应
+                    const slider_container = document.getElementById(`slider-container-${abImage.id}`);
+                    if (slider_container) {
+                        slider_container.style.width = `${imageWidth}px`;
+                        slider_container.style.height = `${imageHeight}px`;
+                    }
                 }
             }
         }
+
 
         function confirmImage(group, id) {
             // 发请求给后端
@@ -253,87 +272,120 @@
 
             // 从链接 http://10.133.2.38:8000/image_groups 中获取可用的组
             fetch('/image_groups')
-            .then(response => response.json()) // 解析为 JSON
-            .then(data => {
-                // 排除 input 和 GT 组
-                const groups = data.groups;
-                let excludeGroups = [];
-                for (let i = 0; i < groups.length; i++) {
-                    if (groups[i].includes('input') || groups[i].includes('GT')) {
-                        continue;
+                .then(response => response.json()) // 解析为 JSON
+                .then(data => {
+                    // 排除 input 和 GT 组
+                    const groups = data.groups;
+                    let excludeGroups = [];
+                    for (let i = 0; i < groups.length; i++) {
+                        if (groups[i].includes('input') || groups[i].includes('GT')) {
+                            continue;
+                        }
+                        excludeGroups.push(groups[i]);
                     }
-                    excludeGroups.push(groups[i]);
-                }
-                const excludeNumber = excludeGroups.length;
+                    const excludeNumber = excludeGroups.length;
 
-                // 生成数组 [1, 2, ..., number]
-                let outputIndices = Array.from({length: excludeNumber}, (_, i) => i+1);
-                outputIndices = outputIndices.sort(() => 0.5 - Math.random());
+                    // 生成数组 [1, 2, ..., number]
+                    let outputIndices = Array.from({length: excludeNumber}, (_, i) => i+1);
+                    outputIndices = outputIndices.sort(() => 0.5 - Math.random());
 
-                // 输入图像的 id
-                inputBox.setAttribute('imageid', nextId)
-                inputBox.innerHTML = `
-                    <img src="/image?group=input&id=${nextId}" alt="Input Image" id="input">
-                    <div class="description">低光图像</div>
-                    `;
+                    // 输入图像的 id
+                    inputBox.setAttribute('imageid', nextId)
+                    inputBox.innerHTML = `
+                        <img src="/image?group=input&id=${nextId}" alt="Input Image" id="input">
+                        `;
 
-                // 遍历输出图像的 id
-                outputRow.innerHTML = '';
-                for (let i = 0; i < excludeNumber; i++) {
-                    const k = outputIndices[i];
+                    // 遍历输出图像的 id
+                    outputRow.innerHTML = '';
+                    for (let i = 0; i < excludeNumber; i++) {
+                        const k = outputIndices[i];
 
-                    const group = excludeGroups[k - 1];
-                    const outputInnerContent_i = `
-                        <div class="image-box" imagegroup="${group}" imageid="${nextId}">
-                            <img src="/image?group=${group}&id=${nextId}" alt="增强图像${i + 1}" id="output-${i + 1}" onclick="onImageClick(${i + 1})">
-                            <div class="star-rating" id="star-rating-${i + 1}">
-                                <span class="star" onclick="setStarRating(${i + 1}, 1)">★</span>
-                                <span class="star" onclick="setStarRating(${i + 1}, 2)">★</span>
-                                <span class="star" onclick="setStarRating(${i + 1}, 3)">★</span>
-                                <span class="star" onclick="setStarRating(${i + 1}, 4)">★</span>
-                                <span class="star" onclick="setStarRating(${i + 1}, 5)">★</span>
+                        const group = excludeGroups[k - 1];
+                        const outputInnerContent_i = `
+                            <div class="image-box" imagegroup="${group}" imageid="${nextId}">
+                                <img src="/image?group=${group}&id=${nextId}" alt="增强图像${i + 1}" id="output-${i + 1}">
+                                <div class="star-rating" id="star-rating-${i + 1}">
+                                    <span class="star" onclick="setStarRating(${i + 1}, 1)">★</span>
+                                    <span class="star" onclick="setStarRating(${i + 1}, 2)">★</span>
+                                    <span class="star" onclick="setStarRating(${i + 1}, 3)">★</span>
+                                    <span class="star" onclick="setStarRating(${i + 1}, 4)">★</span>
+                                    <span class="star" onclick="setStarRating(${i + 1}, 5)">★</span>
+                                </div>
                             </div>
-                        </div>
-        `;
-                    outputRow.innerHTML += outputInnerContent_i;
-                }
-            })
-            .catch(() => {
-                alert('获取 groups 失败，请重试！');
-            });
+                        `;
+                        outputRow.innerHTML += outputInnerContent_i;
+                    }
+
+                    addImageTool(excludeNumber, null, false);
+                })
+                .catch(error => {
+                    alert(`提交失败，请重试！错误信息：${error}`);
+                });
         }
+
+        // 添加图片查看和对比工具
+        function addImageTool(idCount, i_except=null, except_input=true) {
+            // 图像查看工具（右键点击触发）
+            const images = [];
+            if (!except_input) {
+                images.push(document.getElementById('input'));
+            }
+            for (let i = 0; i < idCount; i++) {
+                if (i + 1 === i_except)
+                    continue;
+
+                const outputImage = document.getElementById(`output-${i + 1}`);
+                images.push(outputImage);
+            }
+            addImageViewerListener('click', images)
+
+            // 图像对比工具（左键点击触发）
+            for (let i = 0; i < idCount; i++) {
+                if (i + 1 === i_except)
+                    continue;
+
+                const outputImage = document.getElementById(`output-${i + 1}`);
+                outputImage.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    onImageClick(i + 1);
+                });
+            }
+        }
+
 
         // 调整 mainContainer 的宽度
         function updateMainContainer() {
             const mainContainer = document.getElementById('main-container');
 
             fetch('/image_groups')
-            .then(response => response.json()) // 解析为 JSON
-            .then(data => {
-                // 排除 input 和 GT 组
-                const groups = data.groups;
-                let excludeGroups = [];
-                for (let i = 0; i < groups.length; i++) {
-                    if (groups[i].includes('input') || groups[i].includes('GT')) {
-                        continue;
+                .then(response => response.json()) // 解析为 JSON
+                .then(data => {
+                    // 排除 input 和 GT 组
+                    const groups = data.groups;
+                    let excludeGroups = [];
+                    for (let i = 0; i < groups.length; i++) {
+                        if (groups[i].includes('input') || groups[i].includes('GT')) {
+                            continue;
+                        }
+                        excludeGroups.push(groups[i]);
                     }
-                    excludeGroups.push(groups[i]);
-                }
-                const excludeNumber = excludeGroups.length;
+                    const excludeNumber = excludeGroups.length;
 
-                // 获取 image-box 的宽度和 padding
-                const imageBoxWidth = parseInt(getComputedStyle(mainContainer.querySelector('.image-box')).width);
-                const imageBoxMarginLeft = parseInt(getComputedStyle(mainContainer.querySelector('.image-box')).marginLeft);
-                const imageBoxMarginRight = parseInt(getComputedStyle(mainContainer.querySelector('.image-box')).marginRight);
-                const containerWidth = (imageBoxWidth + imageBoxMarginLeft + imageBoxMarginRight) * excludeNumber;
+                    // 获取 image-box 的宽度和 padding
+                    const imageBox = mainContainer.querySelector('.image-box');
+                    const imageBoxComputedStyle = getComputedStyle(imageBox);
+                    const imageBoxWidth = parseInt(imageBoxComputedStyle.width);
+                    const imageBoxMarginLeft = parseInt(imageBoxComputedStyle.marginLeft);
+                    const imageBoxMarginRight = parseInt(imageBoxComputedStyle.marginRight);
+                    const containerWidth = (imageBoxWidth + imageBoxMarginLeft + imageBoxMarginRight) * excludeNumber;
 
-                // 设置 mainContainer 的宽度
-                mainContainer.style.maxWidth = `${containerWidth}px`;
-                mainContainer.style.width = `${containerWidth}px`;
-            })
-            .catch(() => {
-                alert('获取 groups 失败，请重试！');
-            });
+                    // 设置 mainContainer 的宽度
+                    mainContainer.style.maxWidth = `${containerWidth}px`;
+                    mainContainer.style.width = `${containerWidth}px`;
+                })
+                .catch(() => {
+                    alert('获取 groups 失败，请重试！');
+                });
         }
 
         // 修改网页标题
@@ -344,10 +396,10 @@
             const user_id = urlParams.get('user_id');
 
             const interfaceTitle = document.getElementById('interface-title');
-            interfaceTitle.innerHTML = `${title} ${user_id}`;
+            interfaceTitle.innerHTML = title
 
             const pageTitle = document.getElementById('page-title');
-            pageTitle.innerHTML = `${title} ${user_id}`;
+            pageTitle.innerHTML = title
         }
 
         // 星星评分滑条
@@ -408,7 +460,7 @@
             // 编辑 output 元素
             const i = outputId.split('-')[1];
             outputParent.innerHTML = `
-            <img src="${imageUrl}" alt="增强图像${i}" id="${outputId}" onclick="onImageClick(${i})">`;
+            <img src="${imageUrl}" alt="增强图像${i}" id="${outputId}">`;
 
             // 将其他 children 元素添加到 outputParent 元素中
             children.forEach(child => {
@@ -454,7 +506,7 @@
 
         // 发送请求并更新页面
         function requestAndUpdate(formData, user_id) {
-            text = document.getElementById('text');
+            const text = document.getElementById('text');
             text.innerHTML = '请求图像中...';
 
             // 发送请求到后端
@@ -488,7 +540,7 @@
             updateMainContainer();
             confirmImage("201-None", "None");
 
-            changeTitle('User-Study User-Interface');
+            changeTitle('User-Study 界面');
 
             // 正方体动画
             cubeInit();
@@ -496,13 +548,15 @@
     </script>
 </head>
 <body>
-    <h1 id="interface-title">User-Study User-Interface</h1>
+    <h1 id="interface-title">User-Study 界面</h1>
 
     <div class="container" id="main-container">
         <!-- 上方的一个低光图像框 -->
-        <div class="image-box" id="input-box">
-            <img src="/image?group=input&id=00690" alt="Input Image">
-            <div class="description">低光图像</div>
+        <div class="panel">
+            <h2 class="panel-title">低光图像</h2>
+            <div class="image-box" id="input-box" style="display: inline-block;">
+                <img src="/images/input/00700.png" alt="Input Image">
+            </div>
         </div>
 
         <!-- 下方的多个增强图像框 -->
@@ -510,7 +564,7 @@
             <h2 class="panel-title">增强图像</h2>
             <div class="image-row" id="output-row">
                 <div class="image-box">
-                    <img src="/image?group=FourLLIE&id=00690" alt="增强图像1" id="output-1" onclick="onImageClick(1)">
+                    <img src="/images/FourLLIE/00700.png" alt="增强图像1" id="output-1">
                     <div class="star-rating" id="star-rating-1">
                         <span class="star" onclick="setStarRating(1, 1)">★</span>
                         <span class="star" onclick="setStarRating(1, 2)">★</span>
@@ -520,7 +574,7 @@
                     </div>
                 </div>
                 <div class="image-box">
-                    <img src="/image?group=LightenDiffusion&id=00690" alt="增强图像2" id="output-2" onclick="onImageClick(2)">
+                    <img src="/images/LightenDiffusion/00700.png" alt="增强图像2" id="output-2">
                     <div class="star-rating" id="star-rating-2">
                         <span class="star" onclick="setStarRating(2, 1)">★</span>
                         <span class="star" onclick="setStarRating(2, 2)">★</span>
@@ -530,7 +584,7 @@
                     </div>
                 </div>
                 <div class="image-box">
-                    <img src="/image?group=LLFormer&id=00690" alt="增强图像3" id="output-3" onclick="onImageClick(3)">
+                    <img src="/images/SNR-Net/00700.png" alt="增强图像3" id="output-3">
                     <div class="star-rating" id="star-rating-3">
                         <span class="star" onclick="setStarRating(3, 1)">★</span>
                         <span class="star" onclick="setStarRating(3, 2)">★</span>
@@ -540,7 +594,7 @@
                     </div>
                 </div>
                 <div class="image-box">
-                    <img src="/image?group=SNRNet&id=00690" alt="增强图像4" id="output-4" onclick="onImageClick(4)">
+                    <img src="/images/LCNet/00700.png" alt="增强图像4" id="output-4">
                     <div class="star-rating" id="star-rating-4">
                         <span class="star" onclick="setStarRating(4, 1)">★</span>
                         <span class="star" onclick="setStarRating(4, 2)">★</span>
@@ -550,7 +604,7 @@
                     </div>
                 </div>
                 <div class="image-box">
-                    <img src="/image?group=Retinexformer&id=00690" alt="增强图像5" id="output-5" onclick="onImageClick(5)">
+                    <img src="/images/Retinexformer/00700.png" alt="增强图像5" id="output-5">
                     <div class="star-rating" id="star-rating-5">
                         <span class="star" onclick="setStarRating(5, 1)">★</span>
                         <span class="star" onclick="setStarRating(5, 2)">★</span>
@@ -562,8 +616,15 @@
             </div>
         </div>
 
+        <div class="tip">Tip: 左键点击图像放大，右键点击图像对比</div>
         <button onclick="uploadRating()">上传结果</button>
         <div id="text"></div>
+
+        <div class="outerDiv">
+            <img id="imageViewer" src="/images/Retinexformer/00700.png" alt="imageViewer"/>
+            <!-- tip 位于最底部 -->
+            <div class="imageViewerTip">Tip: 中键按住并拖动移动图像，滚轮滚动缩放图片</div>
+        </div>
     </div>
 </body>
 </html>

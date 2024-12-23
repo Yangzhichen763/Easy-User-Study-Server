@@ -45,6 +45,18 @@
             flex-direction: column;
         }
 
+        select {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            color: #495057;
+            border-radius: 5px;
+            width: 150px;
+            transition: border-color 0.3s; /* 添加过渡效果 */
+        }
+        select:focus {
+            border-color: #80bdff; /* 当前输入框边框高亮 */
+        }
+
         /* before after image slider */
         .slider-container {
             position: relative;
@@ -356,7 +368,7 @@
             <div class="link-section">
                 <h4>链接：<a id="link-3" href="/image_ids">/image_ids<span id="group-name-3"></span></a></h4>
                 <div>
-                    <input class="inputText" type="text" id="groupInput-3" placeholder="输入 group" />
+                    <input class="input-text" type="text" id="groupInput-3" placeholder="输入 group" />
                     <button onclick="fetchImageIds()">更新结果</button>
                 </div>
             </div>

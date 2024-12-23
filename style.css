@@ -37,17 +37,30 @@ button:hover {
 }
 
 /* 输入框 */
-.inputText, select {
+.input-text {
     padding: 10px;
     border: 1px solid #ced4da;
     color: #495057;
     border-radius: 5px;
     width: 150px;
-    margin-right: 10px;
     transition: border-color 0.3s; /* 添加过渡效果 */
 }
-.inputText:focus, select:focus {
+.input-text:focus {
     border-color: #80bdff; /* 当前输入框边框高亮 */
+}
+.input-container {
+    position: relative; /* 使子元素绝对定位 */
+    width: 100%; /* 容器宽度 */
+}
+.input-tip {
+    position: absolute;
+    right: 10px;
+    top: 50%; /* 垂直居中 */
+    transform: translateY(-50%); /* 调整为居中 */
+
+    color: #ced4da;
+    font-size: 10px;
+    pointer-events: none; /* 确保提示文本不影响输入框的事件 */
 }
 
 /* 提示信息文本 */

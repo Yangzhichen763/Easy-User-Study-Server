@@ -27,9 +27,14 @@
             max-width: 400px; /* 限制宽度 */
             width: 100%; /* 确保容器宽度适应 */
         }
-        .inputText {
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px
+        }
+        .input-text {
             width: calc(100% - 22px); /* 修正宽度，减去边框和内边距 */
-            margin-bottom: 15px; /* 添加底部间距 */
         }
         button {
             width: 100%;
@@ -67,9 +72,21 @@
                     button.onclick = () => handleLogin(username, false); // 绑定注册事件
                 }
             } else {
-                button.textContent = '登录'; // 如果输入框为空，恢复为默认状态
-                button.style.backgroundColor = '#007bff';
-                button.onclick = null;
+                button.textContent = '使用随机用户名 注册'; // 如果输入框为空，恢复为默认状态
+                button.style.backgroundColor = '#28a745';
+                button.onclick = () => handleLogin(null, true); // 绑定登录事件
+            }
+
+            // 如果输入不为空，则移除 class="input-tip" 的元素，否则添加
+            const inputContainer = event.target.parentElement;
+            const inputTip = inputContainer.querySelector('.input-tip');
+            if (username) {
+                inputTip.remove();
+            } else if (!inputTip) {
+                const inputTip = document.createElement('span');
+                inputTip.classList.add('input-tip');
+                inputTip.textContent = '或随机生成';
+                inputContainer.appendChild(inputTip);
             }
         }
 
@@ -91,7 +108,14 @@
         }
 
         function handleLogin(username, login=true) {
-            if (login) {
+            if (username === null){
+                // 生成随机用户名
+                username = Math.random().toString(36).substr(2, 8);
+                if (confirm(`确认要使用随机账户 "${username}" 吗？`)) {
+                    window.location.href = `/interface?user_id=${username}`; // 跳转到登录页面
+                }
+            }
+            else if (login) {
                 if (confirm(`确认要登录账户 "${username}" 吗？`)) {
                     window.location.href = `/interface?user_id=${username}`; // 跳转到登录页面
                 }
@@ -103,6 +127,7 @@
         }
 
         window.onload = () => {
+            handleInputChange(event); // 初始状态
             cubeInit();
         }
     </script>
@@ -111,8 +136,11 @@
 
     <div class="container">
         <h2>User-Study 用户登录</h2>
-        <form onsubmit="handleEnterLogin(event)">
-            <input type="text" id="username" class="inputText" placeholder="用户名" required oninput="handleInputChange(event)">
+        <form onsubmit="handleEnterLogin(event)" class="layout-container">
+            <div class="input-container">
+                <input type="text" id="username" class="input-text" placeholder="用户名" required oninput="handleInputChange(event)">
+                <span class="input-tip">或随机生成</span>
+            </div>
             <button type="submit">登录</button>
         </form>
     </div>

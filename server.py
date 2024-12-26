@@ -31,16 +31,27 @@ PORT = 8000
 url = f"http://{IP}:{PORT}"
 
 # 一些本地路径
-image_dir = "images"
-user_data_dir = "users/datas"
+from utils.path import root
+image_dir = os.path.join(root, "images")
+user_data_dir = os.path.join(root, "users/datas")
 
 
 # http://10.133.4.94:8000/image?group=FourLLIE&id=00690
 # 服务器 HTTP 处理器
 class UserStudyHandler(BaseHTTPRequestHandler):
-    def get_image_ids(self):
+    # 获取所有图像方法
+    @staticmethod
+    def get_groups(exclude_groups=None):
+        groups = os.listdir(image_dir)
+        if exclude_groups is None:
+            return groups
+        return [group for group in groups if group not in exclude_groups]
+
+    # 获取所有的图像 ID
+    @staticmethod
+    def get_image_ids():
         image_ids = []
-        for group in os.listdir("images"):
+        for group in UserStudyHandler.get_groups():
             tmp_image_ids = []
             for image_id in os.listdir(os.path.join(image_dir, group)):
                 tmp_image_ids.append(image_id)
@@ -50,6 +61,14 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             else:
                 image_ids = list(set(image_ids) & set(tmp_image_ids))
         return image_ids
+
+    # 判断用户 ID 是否合法
+    @staticmethod
+    def check_available_user_id(user_id):
+        illlegal_chars = r'\\|/|\*|~|"|<|>|\|'
+        if re.search(illlegal_chars, user_id):
+            return False
+        return True
 
     def do_GET(self):
         # 获取请求路径
@@ -147,10 +166,10 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/json")
             self.end_headers()
 
-            image_groups = os.listdir(image_dir)
+            exclude_groups = None
             if params.get("exclude"):
-                exclude_group = params["exclude"].split(",")
-                image_groups = [group for group in image_groups if group not in exclude_group]
+                exclude_groups = params["exclude"].split(",")
+            image_groups = self.get_groups(exclude_groups)
 
             # 发送响应体
             json_data = json.dumps({"groups": image_groups})
@@ -168,10 +187,10 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             self.send_header("Content-type", "application/json")
             self.end_headers()
 
-            image_groups = os.listdir(image_dir)
+            exclude_groups = None
             if params.get("exclude"):
-                exclude_group = params["exclude"].split(",")
-                image_groups = [group for group in image_groups if group not in exclude_group]
+                exclude_groups = params["exclude"].split(",")
+            image_groups = self.get_groups(exclude_groups)
 
             # 发送响应体
             json_data = json.dumps({"number": len(image_groups)})
@@ -241,13 +260,16 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             params = dict(param.split("=") for param in path.split("?")[1].split("&"))
             user_id = params["user_id"]
 
-            # 处理默认请求
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
+            any_exist = False
+            if self.check_available_user_id(user_id):
+                # 处理默认请求
+                self.send_response(200)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
 
-            # 检查文件 users/datas/ 下是否包含 {user_id}.dat 文件
-            any_exist = os.path.exists(os.path.join(user_data_dir, f"{user_id}.dat"))
+                # 检查文件 users/datas/ 下是否包含 {user_id}.dat 文件
+                dat_path = os.path.join(user_data_dir, f"{user_id}.dat")
+                any_exist = os.path.exists(dat_path)
             print(f"User {user_id} exists: {any_exist}")
 
             # 发送响应体
@@ -312,9 +334,9 @@ class UserStudyHandler(BaseHTTPRequestHandler):
 
     def get_select_id(self, can_select_ids):
         # 随机选取一个 ID
-        if not os.listdir(image_dir):
+        if not self.get_groups():
             select_id = Response.DATA_NOT_FOUND
-        elif len(can_select_ids) == 0:
+        elif can_select_ids is None or len(can_select_ids) == 0:
             select_id = Response.NONE
         else:
             select_id = random.choice(can_select_ids)
@@ -330,6 +352,16 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             params = dict(param.split("=") for param in path.split("?")[1].split("&"))
             user_id = params["user_id"]
 
+            # 处理不合法请求
+            if not self.check_available_user_id(user_id):
+                # 获取 ID
+                select_id = self.get_select_id(None)
+
+                # 发送响应体
+                json_data = json.dumps({"next_id": select_id})
+                self.wfile.write(json_data.encode())
+                return
+
             dat_path = os.path.join(user_data_dir, f"{user_id}.dat")
             print(f"User {user_id} selected an image.", end=" ")
             try:
@@ -343,10 +375,10 @@ class UserStudyHandler(BaseHTTPRequestHandler):
 
                 select_id = data["select_id"]
                 select_group = data["select_group"]
-                print(f"Selected image ID: {select_id}, Group: {select_group}", end=" ")
 
                 # 将数据写入文件
                 if select_id != "None" and select_group != "None":
+                    print(f"Selected image ID: {select_id}, Group: {select_group}")
                     any_exist = os.path.exists(dat_path)
                     if any_exist:
                         # 将 select_gid 以 append 方式写入文件
@@ -358,9 +390,10 @@ class UserStudyHandler(BaseHTTPRequestHandler):
                         with open(dat_path, "w") as f:
                             if data.get("select_id") and data["select_id"] != Response.NONE:
                                 f.write(f"{select_id}, {select_group}\n")
+                else:
+                    print("No image selected.")
             except Exception as e:
                 print(f"\nError: {e}")
-            print("")
 
             # 处理默认请求
             self.send_response(200)
@@ -388,6 +421,16 @@ class UserStudyHandler(BaseHTTPRequestHandler):
             params = dict(param.split("=") for param in path.split("?")[1].split("&"))
             user_id = params["user_id"]
 
+            # 处理不合法请求
+            if not self.check_available_user_id(user_id):
+                # 获取 ID
+                select_id = self.get_select_id(None)
+
+                # 发送响应体
+                json_data = json.dumps({"next_id": select_id})
+                self.wfile.write(json_data.encode())
+                return
+
             dat_path = os.path.join(user_data_dir, f"{user_id}.dat")
             print(f"User {user_id} selected an image.", end=" ")
             try:
@@ -414,7 +457,6 @@ class UserStudyHandler(BaseHTTPRequestHandler):
 
             except Exception as e:
                 print(f"\nError: {e}")
-            print("")
 
             # 处理默认请求
             self.send_response(200)
@@ -447,9 +489,17 @@ class UserStudyHandler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     os.makedirs(user_data_dir, exist_ok=True)
-
-    # 创建一个服务器，并绑定到指定的端口
     with HTTPServer((IP, PORT), UserStudyHandler) as httpd:
+        print(f"Server started at {url}/")
+
+        # 设置 print 的输出文件
+        import sys
+        import datetime
+        os.makedirs("logs", exist_ok=True)
+        time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        sys.stdout = open(f"logs/server_{time}.log", "w")
+
+        # 创建一个服务器，并绑定到指定的端口
         print(f"Server started at {url}/")
         # 开始监听并处理请求
         httpd.serve_forever()

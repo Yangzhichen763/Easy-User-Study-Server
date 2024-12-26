@@ -75,3 +75,16 @@ button:hover {
 .tip-icon {
     margin-right: 8px;
 }
+
+/* 内容文本 */
+.content {
+    font-size: 16px;
+    line-height: 1.2;
+    color: #495057;
+
+    align-items: start;
+    flex-direction: column;
+    justify-content: flex-start;
+    text-align: justify; /* 两端对齐 */
+    text-justify: inter-word;
+}

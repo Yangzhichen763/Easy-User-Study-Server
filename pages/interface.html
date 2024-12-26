@@ -29,7 +29,7 @@
             margin: 10px;
             width: 180px;
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             flex-direction: column;
             border: 0;
@@ -170,6 +170,9 @@
     <script src="/js/cube.js"></script>
     <script src="/js/imageViewer.js"></script>
     <script>
+        const RESPONSE_NONE = "201-None";
+        const RESPONSE_NOTFOUND = "401-DataNotFound";
+
         // 图像点击的时候，将图像变为对比图像
         function onImageClick(index) {
             const allImages = document.querySelectorAll('.image-box');
@@ -177,10 +180,14 @@
             // 添加和移除属性 mark
             const marked_output = document.querySelectorAll('[mark="true"]');
             const output_before = document.getElementById(`output-${index}`)
+
+            // 原图像
             if (marked_output.length > 0 && `${index}` === marked_output[0].id.split('-')[1]) {
+                // 移除属性 mark
                 marked_output.forEach(output => {
                     output.removeAttribute('mark');
                 });
+
                 for (let i = 1; i < allImages.length; i++) {
                     // 获取 allImages[i] 第一个子节点的 src
                     if (i === index) {
@@ -193,9 +200,11 @@
                     imageSrc = imageSrc.replace(/"/g, '');
                     displayImage(`output-${i}`, imageSrc)
                 }
-                addImageTool(allImages.length - 1, index);
+                addListener(allImages.length - 1, index);
             }
+            // 对比图像
             else if (marked_output.length === 0) {
+                // 添加和移除属性 mark
                 marked_output.forEach(image => {
                     image.removeAttribute('mark');
                 });
@@ -225,9 +234,9 @@
                 const image = document.getElementById(`input`);
                 const imageWidth = image.width;
                 const imageHeight = image.height;
-                console.log(imageWidth, imageHeight)
                 const imageBoxWidth = 180;
-                const imageBoxHeight = parseInt(imageHeight) / parseInt(imageWidth) * imageBoxWidth + 40;
+                const imageBoxHeight = imageHeight / imageWidth * imageBoxWidth + 40;
+                console.log(`${imageWidth}: imageWidth, ${imageHeight}: imageHeight, ${imageBoxWidth}: imageBoxWidth, ${imageBoxHeight}: imageBoxHeight`)
 
                 // 调整图像的 box 大小
                 for (let i = 1; i < allImages.length; i++) {
@@ -244,26 +253,6 @@
                     }
                 }
             }
-        }
-
-
-        function confirmImage(group, id) {
-            // 发请求给后端
-            const imageData = {
-                select_group: group,
-                select_id: id
-            };
-            let formData = new FormData();
-            for (let key in imageData) {
-                formData.append(`${key}`, imageData[key]);
-            }
-
-            // 获取当前网页的 url 和 user_id
-            const url = window.location.href;
-            const urlParams = new URLSearchParams(url.split('?')[1]);
-            const user_id = urlParams.get('user_id');
-
-            requestAndUpdate(formData, user_id);
         }
 
         function replaceImages(nextId) {
@@ -316,7 +305,7 @@
                         outputRow.innerHTML += outputInnerContent_i;
                     }
 
-                    addImageTool(excludeNumber, null, false);
+                    addListener(excludeNumber, null, false);
                 })
                 .catch(error => {
                     alert(`提交失败，请重试！错误信息：${error}`);
@@ -324,7 +313,7 @@
         }
 
         // 添加图片查看和对比工具
-        function addImageTool(idCount, i_except=null, except_input=true) {
+        function addListener(idCount, i_except=null, except_input=true) {
             // 图像查看工具（右键点击触发）
             const images = [];
             if (!except_input) {
@@ -351,7 +340,6 @@
                 });
             }
         }
-
 
         // 调整 mainContainer 的宽度
         function updateMainContainer() {
@@ -468,6 +456,26 @@
             });
         }
 
+        // 上传
+        function uploadSelection(group, id) {
+            // 发请求给后端
+            const imageData = {
+                select_group: group,
+                select_id: id
+            };
+            let formData = new FormData();
+            for (let key in imageData) {
+                formData.append(`${key}`, imageData[key]);
+            }
+
+            // 获取当前网页的 url 和 user_id
+            const url = window.location.href;
+            const urlParams = new URLSearchParams(url.split('?')[1]);
+            const user_id = urlParams.get('user_id');
+
+            requestAndUpdate(formData, user_id);
+        }
+
         function uploadRating() {
             // 获取当前网页的 url 和 user_id
             const url = window.location.href;
@@ -490,7 +498,7 @@
 
             // 获取所有评分的 group 和评分值
             const data = {
-                'id': id,
+                'id': (id == null ? RESPONSE_NONE : id),
             }
             for (let i = 0; i < groups.length; i++) {
                 data[groups[i]] = ratings[i];
@@ -518,10 +526,12 @@
                 .then(data => {
                     text.innerHTML = '';
                     if (data.next_id) {
-                        if (data.next_id === "201-None") {
-                            alert('所有图像已提交！');
+                        if (data.next_id === RESPONSE_NONE) {
+                            alert('所有图像均已提交！');
+
+                            addListener(5, null, false);
                         }
-                        else if (data.next_id === "401-DataNotFound") {
+                        else if (data.next_id === RESPONSE_NOTFOUND) {
                             alert('图像数据库丢失！');
                         } else {
                             replaceImages(data.next_id);
@@ -538,9 +548,9 @@
 
         window.onload = function() {
             updateMainContainer();
-            confirmImage("201-None", "None");
+            uploadSelection(RESPONSE_NONE, "None");
 
-            changeTitle('User-Study 界面');
+            changeTitle('User-Study 界面'); // User-Study 界面
 
             // 正方体动画
             cubeInit();
@@ -555,7 +565,7 @@
         <div class="panel">
             <h2 class="panel-title">低光图像</h2>
             <div class="image-box" id="input-box" style="display: inline-block;">
-                <img src="/images/input/00700.png" alt="Input Image">
+                <img src="/images/input/00700.png" alt="Input Image" id="input">
             </div>
         </div>
 
@@ -616,14 +626,23 @@
             </div>
         </div>
 
+        <div class="content" style="max-width: 800px; color: #666">
+            以上图像中，最上面的图像是输入的低光图像，下面的7张图像为增强后的图像，请给每一张增强后的图像打分，打分范围为1-5分，1分表示最差，5分表示最好，请从四个方面来考虑增强效果：
+            <ol style="margin-top: 5px;">
+                <li>图像中是否出现过曝/欠曝？</li>
+                <li>图像内容是否清晰？</li>
+                <li>图像色彩是否存在失真？</li>
+                <li>图像中是否噪声或伪影？</li>
+            </ol>
+        </div>
         <div class="tip"><span class="tip-icon">💡</span>左键点击图像放大，右键点击图像对比</div>
         <button onclick="uploadRating()">上传结果</button>
-        <div id="text"></div>
+        <div class="tip" id="text" style="color: #666"></div>
 
         <div class="outerDiv">
             <img id="imageViewer" src="/images/Retinexformer/00700.png" alt="imageViewer"/>
             <!-- tip 位于最底部 -->
-            <div class="imageViewerTip"><span class="tip-icon">💡</span>中键按住并拖动移动图像，滚轮滚动缩放图片</div>
+            <div class="imageViewerTip"><span class="tip-icon">💡</span>中键按住并拖动移动图像，滚轮滚动缩放图片，点击旁边空白区域即可返回</div>
         </div>
     </div>
 </body>
